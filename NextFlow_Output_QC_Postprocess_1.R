@@ -16,6 +16,7 @@ options(error = NULL) #helps with error handling in functions checking for direc
 ##Set your working directory
 #working.directory <- "C:\\Users\\beierj\\Desktop\\2025-04-09_NTG_C1-C5_Analysis"
 
+
 ##Set the QC values you will use to screen the Nextflow QC files
 #Expected length of clip in frames (video clipping duration plus 5 seconds)
 expected.length <- 150*60*30 + 5*30
@@ -109,11 +110,11 @@ write.csv(qc_log.failed,  file.path(qc.log.dir,"qc_failed.csv"), row.names = FAL
 
 #Create a list of expected videos that would be in each Nextflow output---------------------------------------------------------
 #Create a dataframe of videos in QC log
-expected_vidoes <- as.data.frame(gsub("_with_fecal_boli", ".avi", qc_log$video_name))
-expected_vidoes <- as.data.frame(gsub("_filtered", "", expected_vidoes[,1]))
-colnames(expected_vidoes) <- "NetworkFilename"
+expected_videos <- as.data.frame(gsub("_with_fecal_boli", ".avi", qc_log$video_name))
+expected_videos <- as.data.frame(gsub("_filtered", "", expected_videos[,1]))
+colnames(expected_videos) <- "NetworkFilename"
 #Make sure there are no duplicates
-expected_vidoes <- distinct(expected_vidoes, NetworkFilename)
+expected_videos <- distinct(expected_videos, NetworkFilename)
 
 
 #Process Fecal Boli Data and publish QC plots--------------------------------------------------------
@@ -131,9 +132,9 @@ fecal_boli.raw$NetworkFilename <- gsub("_corrected", "", fecal_boli.raw$NetworkF
 fecal_boli.raw$NetworkFilename <- gsub("_filtered", "", fecal_boli.raw$NetworkFilename)
 
 #Check for missing data in fecal boli data based on QC files
-videos_with_missing_fecal_boli <- as.data.frame(setdiff(expected_vidoes$NetworkFilename, fecal_boli.raw$NetworkFilename))
+videos_with_missing_fecal_boli <- as.data.frame(setdiff(expected_videos$NetworkFilename, fecal_boli.raw$NetworkFilename))
 colnames(videos_with_missing_fecal_boli) <- "NetworkFilename"
-fecal_boli_videos_missing_in_qc <- as.data.frame(setdiff(fecal_boli.raw$NetworkFilename, expected_vidoes$NetworkFilename))
+fecal_boli_videos_missing_in_qc <- as.data.frame(setdiff(fecal_boli.raw$NetworkFilename, expected_videos$NetworkFilename))
 colnames(fecal_boli_videos_missing_in_qc) <- "NetworkFilename"
 
 #Output warning and prepare to report report CSV if files are missing in QC log, but present in Gait analysis
@@ -174,7 +175,7 @@ print(p1)
 
 #Plot 10% mice with lowest fecal boli
 p1 <- fecal_boli.plot  |> 
-  summarise(across(fecal_boli, max), .by = NetworkFilename) |> 
+  dplyr::summarise(across(fecal_boli, max), .by = NetworkFilename) |> 
   slice_min(fecal_boli, prop = fecal_boli_percent_threshold) |> 
   select(NetworkFilename) |> 
   merge(fecal_boli.plot, by.x = "NetworkFilename") |> 
@@ -186,7 +187,7 @@ print(p1)
 
 #Plot 10% mice with highest fecal boli
 p1 <- fecal_boli.plot  |> 
-  summarise(across(fecal_boli, max), .by = NetworkFilename) |> 
+  dplyr::summarise(across(fecal_boli, max), .by = NetworkFilename) |> 
   slice_max(fecal_boli, prop = fecal_boli_percent_threshold) |> 
   select(NetworkFilename) |> 
   merge(fecal_boli.plot, by.x = "NetworkFilename") |> 
@@ -228,9 +229,9 @@ colnames(gait.raw)[1] <- "NetworkFilename"
 gait.raw$NetworkFilename <- sub(".", "", gait.raw$NetworkFilename)
 
 #Check for missing data in Gait and QC files
-videos_with_all_gait_missing <- as.data.frame(setdiff(expected_vidoes$NetworkFilename, gait.raw$NetworkFilename))
+videos_with_all_gait_missing <- as.data.frame(setdiff(expected_videos$NetworkFilename, gait.raw$NetworkFilename))
 colnames(videos_with_all_gait_missing) <- "NetworkFilename"
-gait_videos_missing_in_qc <- as.data.frame(setdiff(gait.raw$NetworkFilename, expected_vidoes$NetworkFilename))
+gait_videos_missing_in_qc <- as.data.frame(setdiff(gait.raw$NetworkFilename, expected_videos$NetworkFilename))
 colnames(gait_videos_missing_in_qc) <- "NetworkFilename"
 
 #Output warning and report CSV if files are missing in QC log, but present in Gait analysis
@@ -266,7 +267,7 @@ gait.speed_bin_data <-  dcast(as.data.table(gait.speed_bin_data),
 gait.merged <- merge(gait.duplicated_data, gait.speed_bin_data, by = "NetworkFilename")
 
 #Select all unique NetworkFilenames in the qc Log, and create empty rows unrepresented in the gait features
-gait.final <- merge(expected_vidoes, gait.merged, by = "NetworkFilename", all = TRUE)
+gait.final <- merge(expected_videos, gait.merged, by = "NetworkFilename", all = TRUE)
 gait.final[is.na(gait.final$`Stride Count.10`) , 'Stride Count.10'] <- 0
 gait.final[is.na(gait.final$`Stride Count.15`) , 'Stride Count.15'] <- 0
 gait.final[is.na(gait.final$`Stride Count.20`) , 'Stride Count.20'] <- 0
@@ -301,9 +302,9 @@ JABS.features$NetworkFilename <- gsub("_filtered", "", JABS.features$NetworkFile
 
 
 #Check for missing data in Gait and QC files
-videos_with_JABS_features_missing <- as.data.frame(setdiff(expected_vidoes$NetworkFilename, JABS.features$NetworkFilename))
+videos_with_JABS_features_missing <- as.data.frame(setdiff(expected_videos$NetworkFilename, JABS.features$NetworkFilename))
 colnames(videos_with_JABS_features_missing) <- "NetworkFilename"
-JABS_features_videos_missing_in_qc <- as.data.frame(setdiff(JABS.features$NetworkFilename, expected_vidoes$NetworkFilename))
+JABS_features_videos_missing_in_qc <- as.data.frame(setdiff(JABS.features$NetworkFilename, expected_videos$NetworkFilename))
 colnames(JABS_features_videos_missing_in_qc) <- "NetworkFilename"
 
 #Output warning and prepare to report report CSV if files are missing in QC log, but present in Gait analysis
@@ -336,9 +337,9 @@ morpho.raw <- list.files(
 morpho.raw$NetworkFilename <- sub(".", "", morpho.raw$NetworkFilename)
 
 #Check for missing data in Gait and QC files
-videos_with_morphometrics_features_missing <- as.data.frame(setdiff(expected_vidoes$NetworkFilename, morpho.raw$NetworkFilename))
+videos_with_morphometrics_features_missing <- as.data.frame(setdiff(expected_videos$NetworkFilename, morpho.raw$NetworkFilename))
 colnames(videos_with_morphometrics_features_missing) <- "NetworkFilename"
-morphometrics_videos_missing_in_qc <- as.data.frame(setdiff(morpho.raw$NetworkFilename, expected_vidoes$NetworkFilename))
+morphometrics_videos_missing_in_qc <- as.data.frame(setdiff(morpho.raw$NetworkFilename, expected_videos$NetworkFilename))
 colnames(morphometrics_videos_missing_in_qc) <- "NetworkFilename"
 
 #Output warning and prepare to report report CSV if files are missing in QC log, but present in Gait analysis
