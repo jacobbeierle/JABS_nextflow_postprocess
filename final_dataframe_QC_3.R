@@ -19,6 +19,7 @@ options(error = NULL) #helps with error handling in functions checking for direc
 
 ## Set some pithy project name to be appended to your curated dataset
 #project_name <- "NTG_C1-5"
+project_name <- "OW"
 
 
 #Sometimes features from nextflow are not useful because they are not reliable in your experimental
@@ -29,14 +30,14 @@ options(error = NULL) #helps with error handling in functions checking for direc
 #These strings will be used to filter out cols that contain them, so be specific in your choice of wording
 
 #features.removed.manually <- c("Side_seizure", "Tail_jerk", "Wild_jumping")
-#features.removed.manually <- NULL
+features.removed.manually <- NULL
 
 #Set z-score threshold for outlier screening
 zscore.threshold <- 6
 
 #Set the number of phenotypes to print with the highest, and most common outliers
 how.many.highest.zscore.outlier.plots <- 16
-how.many.most.freq.outlier.plots <- 8
+how.many.most.freq.outlier.plots <- 16
 
 
 #Create functions--------------------------------------------------------------
@@ -475,9 +476,6 @@ if(length(morpho.outliers) != 0){
 #JABSmetric outlier screening
 #I should really subset these features
 JABS.outliers <- unified_zscore_processing(data.Nextflow[colnames(data.Nextflow) %in% JABS.cols], zscore.threshold)
-
-unique(JABS.outliers$phenotype)
-
 
 #Subset JABS figures if there are too many cols
 if(length(JABS.outliers) != 0){

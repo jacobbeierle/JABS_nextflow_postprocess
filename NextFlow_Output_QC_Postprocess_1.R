@@ -15,7 +15,6 @@ options(error = NULL) #helps with error handling in functions checking for direc
 
 ##Set your working directory
 #working.directory <- "C:\\Users\\beierj\\Desktop\\2025-04-09_NTG_C1-C5_Analysis"
-working.directory <- "Y:\\kumarlab-new\\Jake\\Expts_Comp\\2025-10-29_OW_Pilot_V1-4_WS1-4"
 
 ##Set the QC values you will use to screen the Nextflow QC files
 #Expected length of clip in frames (video clipping duration plus 5 seconds)
