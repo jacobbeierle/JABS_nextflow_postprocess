@@ -15,10 +15,11 @@ options(error = NULL) #helps with error handling in functions checking for direc
 
 ##Set your working directory
 #working.directory <- "C:\\Users\\beierj\\Desktop\\2025-04-09_NTG_C1-C5_Analysis"
+working.directory <- "Y:\\kumarlab-new\\Jake\\Expts_Comp\\2025-10-29_OW_Pilot_V1-4_WS1-4"
 
 ##Set the QC values you will use to screen the Nextflow QC files
 #Expected length of clip in frames (video clipping duration plus 5 seconds)
-expected.length <- 60*60*30 + 5*30
+expected.length <- 150*60*30 + 5*30
 #Max number of tracklets/hour recording
 max.tracklets.per.hour <- 6
 #Max frames (as percent of all frames) missing pose
@@ -131,9 +132,10 @@ fecal_boli.raw$NetworkFilename <- gsub("_corrected", "", fecal_boli.raw$NetworkF
 fecal_boli.raw$NetworkFilename <- gsub("_filtered", "", fecal_boli.raw$NetworkFilename)
 
 #Check for missing data in fecal boli data based on QC files
-fecal_boli_videos_missing_in_qc <- setdiff(expected_vidoes$NetworkFilename, fecal_boli.raw$NetworkFilename)
-videos_with_missing_fecal_boli <- setdiff(fecal_boli.raw$NetworkFilename, expected_vidoes$NetworkFilename)
-
+videos_with_missing_fecal_boli <- as.data.frame(setdiff(expected_vidoes$NetworkFilename, fecal_boli.raw$NetworkFilename))
+colnames(videos_with_missing_fecal_boli) <- "NetworkFilename"
+fecal_boli_videos_missing_in_qc <- as.data.frame(setdiff(fecal_boli.raw$NetworkFilename, expected_vidoes$NetworkFilename))
+colnames(fecal_boli_videos_missing_in_qc) <- "NetworkFilename"
 
 #Output warning and prepare to report report CSV if files are missing in QC log, but present in Gait analysis
 if(length(fecal_boli_videos_missing_in_qc!=0)){
@@ -227,14 +229,19 @@ colnames(gait.raw)[1] <- "NetworkFilename"
 gait.raw$NetworkFilename <- sub(".", "", gait.raw$NetworkFilename)
 
 #Check for missing data in Gait and QC files
-gait_videos_missing_in_qc <- setdiff(expected_vidoes$NetworkFilename, gait.raw$NetworkFilename)
-videos_with_all_gait_missing <- setdiff(gait.raw$NetworkFilename, expected_vidoes$NetworkFilename)
+videos_with_all_gait_missing <- as.data.frame(setdiff(expected_vidoes$NetworkFilename, gait.raw$NetworkFilename))
+colnames(videos_with_all_gait_missing) <- "NetworkFilename"
+gait_videos_missing_in_qc <- as.data.frame(setdiff(gait.raw$NetworkFilename, expected_vidoes$NetworkFilename))
+colnames(gait_videos_missing_in_qc) <- "NetworkFilename"
 
 #Output warning and report CSV if files are missing in QC log, but present in Gait analysis
 if(length(gait_videos_missing_in_qc!=0)){
   gait_videos_missing_in_qc$gait <- 1
 }
 
+if(length(videos_with_all_gait_missing!=0)){
+  videos_with_all_gait_missing$gait <- 1
+}
 
 #Extract values repeated identically for each time bin (i.e. the cols identified below) and reduce to one per video
 gait.duplicated_data <- gait.raw |> 
@@ -295,8 +302,10 @@ JABS.features$NetworkFilename <- gsub("_filtered", "", JABS.features$NetworkFile
 
 
 #Check for missing data in Gait and QC files
-JABS_features_videos_missing_in_qc <- setdiff(expected_vidoes$NetworkFilename, JABS.features$NetworkFilename)
-videos_with_JABS_features_missing <- setdiff(JABS.features$NetworkFilename, expected_vidoes$NetworkFilename)
+videos_with_JABS_features_missing <- as.data.frame(setdiff(expected_vidoes$NetworkFilename, JABS.features$NetworkFilename))
+colnames(videos_with_JABS_features_missing) <- "NetworkFilename"
+JABS_features_videos_missing_in_qc <- as.data.frame(setdiff(JABS.features$NetworkFilename, expected_vidoes$NetworkFilename))
+colnames(JABS_features_videos_missing_in_qc) <- "NetworkFilename"
 
 #Output warning and prepare to report report CSV if files are missing in QC log, but present in Gait analysis
 if(length(JABS_features_videos_missing_in_qc!=0)){JABS_features_videos_missing_in_qc$JABS_features <- 1}
@@ -328,8 +337,10 @@ morpho.raw <- list.files(
 morpho.raw$NetworkFilename <- sub(".", "", morpho.raw$NetworkFilename)
 
 #Check for missing data in Gait and QC files
-morphometrics_videos_missing_in_qc <- setdiff(expected_vidoes$NetworkFilename, morpho.raw$NetworkFilename)
-videos_with_morphometrics_features_missing <- setdiff(morpho.raw$NetworkFilename, expected_vidoes$NetworkFilename)
+videos_with_morphometrics_features_missing <- as.data.frame(setdiff(expected_vidoes$NetworkFilename, morpho.raw$NetworkFilename))
+colnames(videos_with_morphometrics_features_missing) <- "NetworkFilename"
+morphometrics_videos_missing_in_qc <- as.data.frame(setdiff(morpho.raw$NetworkFilename, expected_vidoes$NetworkFilename))
+colnames(morphometrics_videos_missing_in_qc) <- "NetworkFilename"
 
 #Output warning and prepare to report report CSV if files are missing in QC log, but present in Gait analysis
 if(length(morphometrics_videos_missing_in_qc!=0)){morphometrics_videos_missing_in_qc$morpho_features <- 1}
@@ -354,6 +365,7 @@ write.csv(morpho.raw, file.path(final.dataframes.dir, "morphometrics_final.csv")
 #Combine into a single list
 all_missing_data <- list(
   "videos_with_missing_fecal_boli" = videos_with_missing_fecal_boli,
+  "videos_with_all_gait_missing" = videos_with_all_gait_missing,
   "videos_with_JABS_features_missing" = videos_with_JABS_features_missing,
   "videos_with_morphometrics_features_missing" = videos_with_morphometrics_features_missing
 )
@@ -431,14 +443,15 @@ if(!is.character(publish_videos_not_in_qc_report)){
   if(length(fecal_boli_videos_missing_in_qc)){ error.reporting <- c(error.reporting,"FECAL BOLI DATA PRESENT FOR VIDEOS NOT IN QC LOG") }
   if(length(gait_videos_missing_in_qc)){ error.reporting <- c(error.reporting,"GAIT DATA PRESENT FOR VIDEOS NOT IN QC LOG") }
   if(length(JABS_features_videos_missing_in_qc)){ error.reporting <- c(error.reporting,"JABS FEATURE DATA PRESENT FOR VIDEOS NOT IN QC LOG") }
-  if(length(morphometrics_videos_missing_in_qc)){ error.reporting <- c(error.reporting,"YOU ARE MISSING MORPHOMETRIC FEATURE DATA") }
+  if(length(morphometrics_videos_missing_in_qc)){ error.reporting <- c(error.reporting,"MORPHOMETRIC DATA PRESENT FOR VIDEOS NOT IN QC LOG") }
 }
 
 #Report to terminal if data is missing feature tables but in QC log
 if(!is.character(publish_missing_data)){
   if(length(videos_with_missing_fecal_boli)){error.reporting <- c(error.reporting,"YOU ARE MISSING FECAL BOLI DATA") }
   if(length(videos_with_JABS_features_missing)){ error.reporting <- c(error.reporting,"YOU ARE MISSING JABS FEATURE DATA") }
-  if(length(videos_with_morphometrics_features_missing)){ error.reporting <- c(error.reporting,"MORPHOMETRIC DATA PRESENT FOR VIDEOS NOT IN QC LOG") }
+  if(length(videos_with_morphometrics_features_missing)){ error.reporting <- c(error.reporting,"YOU ARE MISSING MORPHOMETRIC FEATURE DATA") }
+  if(length(videos_with_all_gait_missing)){ error.reporting <- c(error.reporting,"YOU HAVE VIDEOS WITH NO GAIT DATA, MAY BE INACTIVE MICE") }
 }
 
 #Report to terminal if there is duplicated data
@@ -450,5 +463,5 @@ if(length(error.reporting) == 0){
   print("FINAL ERROR REPORT: NO ERRORS TO REPORT")
 }else{
   print("FINAL ERROR REPORT:", )
-  paste(error.reporting, collapse = "\n")
+  paste(error.reporting)
 }
