@@ -16,6 +16,8 @@ options(error = NULL) #helps with error handling in functions checking for direc
 
 #If you are not using an R project, set your working directory
 #working.directory <- "C:\\Users\\beierj\\Desktop\\2025-04-09_NTG_C1-C5_Analysis"
+#working.directory <- "C:\\Users\\beierj\\Desktop\\2025-10-29_OW_Pilot_V1-5_WS1-4"
+
 
 ## Set some pithy project name to be appended to your curated dataset
 #project_name <- "NTG_C1-5"

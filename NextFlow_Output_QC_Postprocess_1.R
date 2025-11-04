@@ -15,6 +15,7 @@ options(error = NULL) #helps with error handling in functions checking for direc
 
 ##Set your working directory
 #working.directory <- "C:\\Users\\beierj\\Desktop\\2025-04-09_NTG_C1-C5_Analysis"
+#working.directory <- "C:\\Users\\beierj\\Desktop\\2025-10-29_OW_Pilot_V1-5_WS1-4"
 
 
 ##Set the QC values you will use to screen the Nextflow QC files
@@ -439,7 +440,7 @@ if(all(sapply(duplicated_data, function(x) nrow(x)==0))){
 error.reporting <- NULL
 
 #Report to terminal if data is missing from QC log but in feature tables
-if(!is.character(publish_videos_not_in_qc_report)){
+if(length(publish_videos_not_in_qc_report)){
   if(length(fecal_boli_videos_missing_in_qc)){ error.reporting <- c(error.reporting,"FECAL BOLI DATA PRESENT FOR VIDEOS NOT IN QC LOG") }
   if(length(gait_videos_missing_in_qc)){ error.reporting <- c(error.reporting,"GAIT DATA PRESENT FOR VIDEOS NOT IN QC LOG") }
   if(length(JABS_features_videos_missing_in_qc)){ error.reporting <- c(error.reporting,"JABS FEATURE DATA PRESENT FOR VIDEOS NOT IN QC LOG") }

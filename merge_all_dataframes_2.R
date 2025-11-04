@@ -16,6 +16,7 @@ options(error = NULL) #helps with error handling in functions checking for direc
 ##If you are not using an R project, set your working directory
 
 #working.directory <- "C:\\Users\\beierj\\Desktop\\2025-04-09_NTG_C1-C5_Analysis"
+#working.directory <- "C:\\Users\\beierj\\Desktop\\2025-10-29_OW_Pilot_V1-5_WS1-4"
 
 
 #Create functions--------------------------------------------------------------
@@ -155,9 +156,9 @@ if(length(merged.NetworkFilename.check)){
 
 #Merge all dataframes
 nextflow_dataset.metadata_not_merged <- gait.final |> 
-  merge(JABS.final, by = "NetworkFilename") |> 
-  merge(morpho.final, by = "NetworkFilename") |> 
-  merge(fecal_boli.final, by = "NetworkFilename")
+  full_join(JABS.final) |> 
+  full_join(morpho.final) |> 
+  full_join(fecal_boli.final)
 
 
 #Remove Videos that Failed QC, Requires manual screening------------------------
@@ -167,7 +168,7 @@ if(!file.exists(excluded.videos)){
 }else{
   videos_to_exclude <- read.table(excluded.videos, quote="\"", comment.char="")
   if(length(videos_to_exclude)){
-    nextflow_dataset.metadata_not_merged <- nextflow_dataset.metadata_not_merged[!nextflow_dataset.metadata_not_merged$NetworkFilename %in% videos_to_exclude$V1, ]
+    nextflow_dataset.metadata_not_merged <- nextflow_dataset.metadata_not_merged[!(nextflow_dataset.metadata_not_merged$NetworkFilename %in% videos_to_exclude$V1), ]
     videos_to_exclude.exists <- TRUE
   }else(videos_to_exclude.exists <- FALSE)
 }
@@ -203,7 +204,7 @@ if(length(metadata.qc.check)){
 }
 
 #Merge Metadata
-nextflow_dataset.final <- merge(metadata, nextflow_dataset.metadata_not_merged, by = "MouseID")
+nextflow_dataset.final <- left_join(metadata, nextflow_dataset.metadata_not_merged)
 
 #Publish CSV--------------------------------------------------------------------
 
